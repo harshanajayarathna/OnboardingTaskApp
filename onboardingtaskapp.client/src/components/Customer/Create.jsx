@@ -1,16 +1,21 @@
 import { React, useState } from 'react';
-import { Modal, Button } from 'semantic-ui-react';
+import { Modal, Button, Message } from 'semantic-ui-react';
 
-export default function Create() {
+export default function Create({ isCreated }) {
 
+    // states
     const [open, setOpen] = useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const [createSuccess, setCreateSuccess] = useState(false);
+    const [createError, setCreateError] = useState(false);      
 
     const [formData, setFormData] = useState({
         name: '',
         address: ''
     });
+
+    // methods
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -23,20 +28,33 @@ export default function Create() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('https://localhost:7207/api/Customer', {
+            const response = await fetch(`https://localhost:7207/api/Customer`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(formData)
             });
+                                   
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            // Handle success
-            window.location.replace("/");
+            // Handle success           
             console.log('Customer created successfully');
+
+            setCreateError(false);
+            setCreateSuccess(true);
+            
+
+            setTimeout(() => {
+                handleClose()
+                isCreated(true)
+            }, 3000);
+
+
         } catch (error) {
+            setCreateSuccess(false);
+            setCreateError(true);
             console.error('There was a problem creating customer:', error.message);
         }
     };
@@ -73,6 +91,19 @@ export default function Create() {
                             />
                         </div>
                     </form>
+
+                    {createSuccess && (
+                        <Message positive>
+                            <p>The customer has been created successfully.</p>
+                        </Message>
+                    )}
+
+                    {createError && (
+                        <Message negative>
+                            <p>There was an error while creating the customer.</p>
+                        </Message>
+                    )}
+
                 </Modal.Content>
                 <Modal.Actions>
                     <Button color='black' onClick={handleClose}>

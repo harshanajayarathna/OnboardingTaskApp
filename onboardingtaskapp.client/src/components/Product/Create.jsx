@@ -1,17 +1,21 @@
 import { React, useState } from 'react'
-import { Modal, Button } from 'semantic-ui-react';
+import { Modal, Button, Message } from 'semantic-ui-react';
 
-export default function Create() {
+export default function Create({ isCreated }) {
 
     const [open, setOpen] = useState(false);
+    const [createSuccess, setCreateSuccess] = useState(false);
+    const [createError, setCreateError] = useState(false);
+
+    const [formData, setFormData] = useState({
+        name: '',
+        price: '',
+
+    });
+
+    // methods
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-
-    const [formData, setFormData] = useState({        
-        name: '',
-        price: '',        
-        
-    });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -34,10 +38,21 @@ export default function Create() {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            // Handle success
-            window.location.replace("/products");
+            // Handle success           
             console.log('Product created successfully');
+
+            setCreateError(false);
+            setCreateSuccess(true);
+           
+
+            setTimeout(() => {
+                handleClose()
+                isCreated(true)
+            }, 3000);
+
         } catch (error) {
+            setCreateSuccess(false);
+            setCreateError(true);
             console.error('There was a problem creating product:', error.message);
         }
     };
@@ -77,6 +92,19 @@ export default function Create() {
                         </div>
                         
                     </form>
+
+                    {createSuccess && (
+                        <Message positive>
+                            <p>The product has been created successfully.</p>
+                        </Message>
+                    )}
+
+                    {createError && (
+                        <Message negative>
+                            <p>There was an error while creating the product.</p>
+                        </Message>
+                    )}
+
                 </Modal.Content>
                 <Modal.Actions>
                     <Button color='black' onClick={handleClose}>

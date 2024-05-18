@@ -9,37 +9,72 @@ export default function List() {
     const [sales, setSales] = useState([]);
 
     useEffect(() => {        
-        fetch('https://localhost:7207/api/Sale')
-            .then(response => response.json())
-            .then(data => setSales(data))
-            .catch(error => console.error('Error fetching sales:', error));
+        fetchSales();
     }, []);
 
-    const handleDelete = async (saleId) => {
+    const fetchSales = async () => {
+
         try {
-            const response = await fetch(`https://localhost:7207/api/Sale/${saleId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            // Handle success
-            window.location.replace("/sales");
-            console.log('Sale deleted successfully');
+            await fetch('https://localhost:7207/api/Sale')
+                .then(response => response.json())
+                .then(data => setSales(data))
+                .catch(error => console.error('Error fetching sales:', error));
 
         } catch (error) {
-            console.error('There was a problem deleting sale:', error.message);
+            console.error('There was a problem fetching product sales:', error.message);
         }
+       
     };
+
+    const handleDeleteSuccess = async (isDeleted) => {
+
+        if (isDeleted) {
+            await fetchSales();
+        }
+    }
+
+    const handleUpdateSuccess = async (isUpdated) => {
+
+        if (isUpdated) {
+            await fetchSales();
+        }
+    }
+
+    const handleCreateSuccess = async (isCreated) => {
+
+        if (isCreated) {
+            await fetchSales();
+        }
+    }
+
+    const renderTableRows = (sale, handleUpdateSuccess, handleDeleteSuccess) => {
+        return (
+            <tr key={sale.id}>
+                <td data-label="Customer">{sale.customer.name}</td>
+                <td data-label="Product">{sale.product.name}</td>
+                <td data-label="Store">{sale.store.name}</td>
+                <td data-label="Date Sold">{sale.dateSold}</td>
+                <td>
+                    <SaleEdit
+                        item={{ sale }}
+                        isUpdated={handleUpdateSuccess}
+                    />
+                </td>
+                <td>
+                    <SaleDelete
+                        item={{ id: sale.id, title: 'Delete Sale', buttonText: 'DELETE', url: 'Sale', redirect: 'sales' }}
+                        isDeleted={handleDeleteSuccess}
+                    />
+                </td>
+            </tr>
+
+        )
+    }
 
     return (
         <>
 
-            <SaleCreate />
-           
+            <SaleCreate isCreated={handleCreateSuccess} />           
 
             <table className="ui celled table">
                 <thead>
@@ -48,25 +83,14 @@ export default function List() {
                         <th>Store</th>
                         <th>Date Sold</th>
                         <th>Actions</th>
-                        <th>Actions</th>
-                        
+                        <th>Actions</th>                        
                     </tr>
                 </thead>
+
                 <tbody>
-                    {sales.map(sale => (
-                        <tr key={sale.id}>
-                            <td data-label="Customer">{sale.customer.name}</td>
-                            <td data-label="Product">{sale.product.name}</td>
-                            <td data-label="Store">{sale.store.name}</td>
-                            <td data-label="Date Sold">{sale.dateSold}</td>
-                            <td>
-                                <SaleEdit item={{ sale }} />   
-                            </td>
-                            <td>
-                                <SaleDelete item={{ id: sale.id, title: 'Delete Sale', buttonText: 'DELETE', url: 'Sale', redirect: 'sales' }} />
-                            </td>
-                        </tr>
-                    ))}
+                    {sales.map(sale => 
+                        renderTableRows(sale, handleUpdateSuccess, handleDeleteSuccess)
+                    )}
 
                 </tbody>
             </table>

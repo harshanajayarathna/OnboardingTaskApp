@@ -9,39 +9,69 @@ export default function List() {
     const [customers, setCustomers] = useState([]);       
 
     useEffect(() => {       
-        fetch('https://localhost:7207/api/Customer')
-            .then(response => response.json())
-            .then(data => setCustomers(data))
-            .catch(error => console.error('Error fetching customers:', error));
+        fetchCustomers();
     }, []);
 
+    const fetchCustomers = async () => {
 
-    const handleDelete = async (customerId) => {
         try {
-            const response = await fetch(`https://localhost:7207/api/Customer/${customerId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            // Handle success
-            window.location.replace("/");
-            console.log('Customer deleted successfully');
-            
-        } catch (error) {
-            console.error('There was a problem deleting customer:', error.message);
-        }
-    };
+            await fetch('https://localhost:7207/api/Customer')
+                .then(response => response.json())
+                .then(data => setCustomers(data))
+                .catch(error => console.error('Error fetching customers:', error));
 
+        } catch (error) {
+            console.error('There was a problem fetching customers data:', error.message);
+        }       
+    }
+
+    const handleDeleteSuccess = async (isDeleted) => {
+
+        if (isDeleted) {
+           await fetchCustomers();
+        }
+    }
+
+    const handleUpdateSuccess = async (isUpdated) => {
+
+        if (isUpdated) {
+            await fetchCustomers();
+        }
+    }
+
+    const handleCreateSuccess = async (isCreated) => {
+
+        if (isCreated) {
+            await fetchCustomers();
+        }
+    }
+
+    const renderTableRows = (customer, handleUpdateSuccess, handleDeleteSuccess) => {
+        return (
+            <tr key={customer.id}>
+                <td data-label="Name">{customer.name}</td>
+                <td data-label="Address">{customer.address}</td>
+                <td>
+                    <CustomerEdit
+                        item={{ customer }}
+                        isUpdated={handleUpdateSuccess}
+                    />
+                </td>
+                <td>
+                    <CustomerDelete
+                        item={{ id: customer.id, title: 'Delete Customer', buttonText: 'DELETE', url: 'Customer', redirect: '' }}
+                        isDeleted={handleDeleteSuccess}
+
+                    />
+                </td>
+            </tr>
+        )
+    }
 
     return (
         <>
 
-            <CustomerCreate />
-            
+            <CustomerCreate isCreated={handleCreateSuccess} />            
 
             <table className="ui celled table">
                 <thead>
@@ -53,18 +83,10 @@ export default function List() {
                     </tr>
                 </thead>
                 <tbody>
-                    {customers.map(customer => (
-                        <tr key={customer.id}>
-                            <td data-label="Name">{customer.name}</td>
-                            <td data-label="Address">{customer.address}</td>
-                            <td>
-                                <CustomerEdit item={{ customer}} />                               
-                            </td>
-                            <td>
-                                <CustomerDelete item={{ id: customer.id, title: 'Delete Customer', buttonText: 'DELETE', url: 'Customer',  redirect: '' }} />
-                            </td>
-                        </tr>
-                    ))}
+                    {customers.map(customer => 
+                        renderTableRows(customer, handleUpdateSuccess, handleDeleteSuccess)
+                       
+                    )}
 
                 </tbody>
             </table>                      

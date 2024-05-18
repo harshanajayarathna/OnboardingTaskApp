@@ -1,11 +1,12 @@
 import { React, useState, useEffect } from 'react'
-import { Modal, Button } from 'semantic-ui-react';
+import { Modal, Button, Message } from 'semantic-ui-react';
 
-export default function Create() {
+export default function Create({ isCreated }) {
 
+    // states
     const [open, setOpen] = useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const [createSuccess, setCreateSuccess] = useState(false);
+    const [createError, setCreateError] = useState(false);
 
     const [formData, setFormData] = useState({       
         customerId: '',
@@ -20,27 +21,56 @@ export default function Create() {
     const [stores, setStores] = useState([]);
 
     useEffect(() => {
-        fetch('https://localhost:7207/api/Customer')
-            .then(response => response.json())
-            .then(
-                data => setCustomers(data)                
-            )
-            .catch(error => console.error('Error fetching customers:', error));
+        fetchCustomers()
+        fetchProducts()
+        fetchStores()
+       
     }, []);      
 
-    useEffect(() => {
-        fetch('https://localhost:7207/api/Product')
-            .then(response => response.json())
-            .then(data => setProducts(data))
-            .catch(error => console.error('Error fetching products:', error));
-    }, []);
-   
-    useEffect(() => {
-        fetch('https://localhost:7207/api/Store')
-            .then(response => response.json())
-            .then(data => setStores(data))
-            .catch(error => console.error('Error fetching stores:', error));
-    }, []);
+    // const
+    const API_END_POINT = `https://localhost:7207/api/`;
+    
+    // methods
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
+    const fetchCustomers = async () => {
+        try {
+            await fetch(`${API_END_POINT}Customer`)
+                .then(response => response.json())
+                .then(
+                    data => setCustomers(data)
+                )
+                .catch(error => console.error('Error fetching customers:', error));
+
+        } catch (error) {
+            console.error('There was a problem fetching customers data:', error.message);
+        }
+    }
+
+    const fetchProducts = async () => {
+        try {
+            await fetch(`${API_END_POINT}Product`)
+                .then(response => response.json())
+                .then(data => setProducts(data))
+                .catch(error => console.error('Error fetching products:', error));
+
+        } catch (error) {
+            console.error('There was a problem fetching product data:', error.message);
+        }
+    }
+
+    const fetchStores = async () => {
+        try {
+            await fetch(`${API_END_POINT}Store`)
+                .then(response => response.json())
+                .then(data => setStores(data))
+                .catch(error => console.error('Error fetching stores:', error));
+        } catch (error) {
+            console.error('There was a problem fetching stores data:', error.message);
+        }
+    }
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -58,7 +88,7 @@ export default function Create() {
 
         console.log(formData);
         try {
-            const response = await fetch('https://localhost:7207/api/Sale', {
+            const response = await fetch(`${API_END_POINT}Sale`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -68,10 +98,21 @@ export default function Create() {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            // Handle success
-            window.location.replace("/sales");
+            // Handle success           
             console.log('Store created successfully');
+
+            setCreateError(false);
+            setCreateSuccess(true);           
+
+            setTimeout(() => {
+                handleClose()
+                isCreated(true)
+            }, 3000);
+
+
         } catch (error) {
+            setCreateSuccess(false);
+            setCreateError(true);
             console.error('There was a problem creating store:', error.message);
         }
     };
@@ -127,6 +168,19 @@ export default function Create() {
                                 onChange={handleChange} />
                         </div>
                     </form>
+
+                    {createSuccess && (
+                        <Message positive>
+                            <p>The sale has been created successfully.</p>
+                        </Message>
+                    )}
+
+                    {createError && (
+                        <Message negative>
+                            <p>There was an error while creating the sale.</p>
+                        </Message>
+                    )}
+
                 </Modal.Content>
                 <Modal.Actions>
                     <Button color='black' onClick={handleClose}>

@@ -1,11 +1,12 @@
 import { React, useState, useEffect } from 'react';
-import { Modal, Button } from 'semantic-ui-react';
+import { Modal, Button, Message } from 'semantic-ui-react';
 
-export default function Edit({ item }) {
+export default function Edit({ item, isUpdated }) {
 
+    // states
     const [open, setOpen] = useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const [updateSuccess, setUpdateSuccess] = useState(false);
+    const [updateError, setUpdateError] = useState(false);
 
     const [formData, setFormData] = useState({
         customerId: '',
@@ -19,43 +20,79 @@ export default function Edit({ item }) {
     const [stores, setStores] = useState([]);
 
     useEffect(() => {
-        fetch('https://localhost:7207/api/Customer')
-            .then(response => response.json())
-            .then(
-                data => setCustomers(data)
-            )
-            .catch(error => console.error('Error fetching customers:', error));
+        fetchCustomers()
+        fetchProducts()
+        fetchStores()
     }, []);
 
-    useEffect(() => {
-        fetch('https://localhost:7207/api/Product')
-            .then(response => response.json())
-            .then(data => setProducts(data))
-            .catch(error => console.error('Error fetching products:', error));
-    }, []);
+    
 
     useEffect(() => {
-        fetch('https://localhost:7207/api/Store')
-            .then(response => response.json())
-            .then(data => setStores(data))
-            .catch(error => console.error('Error fetching stores:', error));
-    }, []);
 
-    useEffect(() => {
-        const fetchSale = async () => {
-            try {
-                const response = await fetch(`https://localhost:7207/api/Sale/${item.sale.id}`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                setFormData(data);
-            } catch (error) {
-                console.error('There was a problem fetching sale data:', error.message);
-            }
-        };
+        if (item.sale.id <= 0 || item.sale.id === '') {
+            throw new Error('Invalid Id');
+        }
+               
         fetchSale();
+
     }, [item.sale.id]);
+
+    // const
+    const API_END_POINT = `https://localhost:7207/api/`;
+
+    // methods
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
+    const fetchCustomers = async () => {
+        try {
+            await fetch(`${API_END_POINT}Customer`)
+                .then(response => response.json())
+                .then(
+                    data => setCustomers(data)
+                )
+                .catch(error => console.error('Error fetching customers:', error));
+
+        } catch (error) {
+            console.error('There was a problem fetching customers data:', error.message);
+        }
+    }
+
+    const fetchProducts = async () => {
+        try {
+            await fetch(`${API_END_POINT}Product`)
+                .then(response => response.json())
+                .then(data => setProducts(data))
+                .catch(error => console.error('Error fetching products:', error));
+
+        } catch (error) {
+            console.error('There was a problem fetching product data:', error.message);
+        }
+    }
+
+    const fetchStores = async () => {
+        try {
+            await fetch(`${API_END_POINT}Store`)
+                .then(response => response.json())
+                .then(data => setStores(data))
+                .catch(error => console.error('Error fetching stores:', error));
+        } catch (error) {
+            console.error('There was a problem fetching stores data:', error.message);
+        }
+    }
+
+    const fetchSale = async () => {
+        try {
+            const response = await fetch(`${API_END_POINT}Sale/${item.sale.id}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            setFormData(data);
+        } catch (error) {
+            console.error('There was a problem fetching sale data:', error.message);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -68,7 +105,7 @@ export default function Edit({ item }) {
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`https://localhost:7207/api/Sale/${item.sale.id}`, {
+            const response = await fetch(`${API_END_POINT}Sale/${item.sale.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -80,9 +117,18 @@ export default function Edit({ item }) {
             }
             // Handle success
             console.log('Sale updated successfully');
-            window.location.replace("/sales");
+
+            setUpdateError(false);
+            setUpdateSuccess(true);
+            
+            setTimeout(() => {
+                handleClose()
+                isUpdated(true)
+            }, 3000);
 
         } catch (error) {
+            setUpdateSuccess(false);
+            setUpdateError(true);
             console.error('There was a problem updating sale:', error.message);
         }
     };
@@ -134,10 +180,22 @@ export default function Edit({ item }) {
                                 placeholder="Date Sold"
                                 value={formData.dateSold}
                                 onChange={handleChange} />
-                        </div>
-                                              
+                        </div>                                             
 
                     </form>
+
+                    {updateSuccess && (
+                        <Message positive>
+                            <p>The sale has been updated successfully.</p>
+                        </Message>
+                    )}
+
+                    {updateError && (
+                        <Message negative>
+                            <p>There was an error while updating the sale.</p>
+                        </Message>
+                    )}
+
                 </Modal.Content>
                 <Modal.Actions>
                     <Button color='black' onClick={handleClose}>

@@ -1,17 +1,22 @@
 import { React, useState } from 'react';
-import { Modal, Button } from 'semantic-ui-react';
+import { Modal, Button, Message } from 'semantic-ui-react';
 
-export default function Create() {
+export default function Create({ isCreated }) {
 
+    // states
     const [open, setOpen] = useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const [createSuccess, setCreateSuccess] = useState(false);
+    const [createError, setCreateError] = useState(false);
 
-    const [formData, setFormData] = useState({       
+    const [formData, setFormData] = useState({
         name: '',
-        address: '',        
-        
+        address: '',
+
     });
+
+    // methods
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);        
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -34,10 +39,20 @@ export default function Create() {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            // Handle success
-            window.location.replace("/stores");
+            // Handle success            
             console.log('Store created successfully');
+
+            setCreateError(false);
+            setCreateSuccess(true);
+            
+            setTimeout(() => {
+                handleClose()
+                isCreated(true)
+            }, 3000);
+
         } catch (error) {
+            setCreateSuccess(false);
+            setCreateError(true);
             console.error('There was a problem creating store:', error.message);
         }
     };
@@ -75,6 +90,19 @@ export default function Create() {
                                 onChange={handleChange} />
                         </div>                       
                     </form>
+
+                    {createSuccess && (
+                        <Message positive>
+                            <p>The store has been created successfully.</p>
+                        </Message>
+                    )}
+
+                    {createError && (
+                        <Message negative>
+                            <p>There was an error while creating the store.</p>
+                        </Message>
+                    )}
+
                 </Modal.Content>
                 <Modal.Actions>
                     <Button color='black' onClick={handleClose}>

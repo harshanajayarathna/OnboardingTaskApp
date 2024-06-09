@@ -5,8 +5,7 @@ export default function Edit({ item, isUpdated }) {
 
     // states
     const [open, setOpen] = useState(false);
-    const [updateSuccess, setUpdateSuccess] = useState(false);
-    const [updateError, setUpdateError] = useState(false);
+    const [message, setMessage] = useState(null);   
 
     const [formData, setFormData] = useState({
         name: '',
@@ -15,7 +14,7 @@ export default function Edit({ item, isUpdated }) {
 
     useEffect(() => {
 
-        if (item.product.id <= 0 || item.product.id === '') {
+        if (!item.product.id) {
             throw new Error('Invalid Id');
         }
 
@@ -24,11 +23,13 @@ export default function Edit({ item, isUpdated }) {
     }, [item.product.id]);
 
     // const
-    const API_END_POINT = `https://localhost:7207/api/Product/`;
+    const API_END_POINT = `https://onboardsite.azurewebsites.net/api/Product/`;
 
     // methods
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);        
+    const handleDisplayModal = () => {
+        setOpen(!open);
+        setMessage(null);
+    };     
 
     const fetchProduct = async () => {
         try {
@@ -67,18 +68,21 @@ export default function Edit({ item, isUpdated }) {
             // Handle success
             console.log('Product updated successfully');
 
-            setUpdateError(false);
-            setUpdateSuccess(true);
-           
+            setMessage(<Message positive>
+                <p>The product has been updated successfully.</p>
+            </Message>)
 
             setTimeout(() => {
-                handleClose()
+                handleDisplayModal()
                 isUpdated(true)
             }, 3000);
            
         } catch (error) {
-            setUpdateSuccess(false);
-            setUpdateError(true);
+
+            setMessage(<Message negative>
+                <p>There was an error while updating the product.</p>
+            </Message>)
+
             console.error('There was a problem updating product:', error.message);
         }
     };
@@ -86,10 +90,9 @@ export default function Edit({ item, isUpdated }) {
     return (
         <>
             <Modal
-                onClose={handleClose}
-                onOpen={handleOpen}
+                onClose={handleDisplayModal}
                 open={open}
-                trigger={<Button className="ui orange button"><span className="icon-left-align"><i class="edit icon"></i></span> EDIT</Button>}
+                trigger={<Button className="ui orange button" onClick={handleDisplayModal} ><span className="icon-left-align"><i class="edit icon"></i></span> EDIT</Button>}
             >
                 <Modal.Header>Update Product</Modal.Header>
                 <Modal.Content>
@@ -105,7 +108,7 @@ export default function Edit({ item, isUpdated }) {
                             />
                         </div>
                         <div className="field">
-                            <label>Address</label>
+                            <label>Price</label>
                             <input
                                 type="text"
                                 name="price"
@@ -116,21 +119,11 @@ export default function Edit({ item, isUpdated }) {
                         </div>                        
                     </form>
 
-                    {updateSuccess && (
-                        <Message positive>
-                            <p>The product has been updated successfully.</p>
-                        </Message>
-                    )}
-
-                    {updateError && (
-                        <Message negative>
-                            <p>There was an error while updating the product.</p>
-                        </Message>
-                    )}
-
+                    {message}
+                                       
                 </Modal.Content>
                 <Modal.Actions>
-                    <Button color='black' onClick={handleClose}>
+                    <Button color='black' onClick={handleDisplayModal}>
                         Cancel
                     </Button>
                     <Button className="ui teal button" onClick={handleUpdate}>Update <span className="icon-right-align"><i class="check icon"></i></span> </Button>

@@ -71,7 +71,7 @@ namespace OnboardingTaskApp.Server.Controllers
                 _context.Customer.Add(customer);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetCustomerAsync), new { id = customer.Id }, customer);
+                return customer;              
 
             } catch(Exception ex)
             {

@@ -5,8 +5,7 @@ export default function Create({ isCreated }) {
 
     // states
     const [open, setOpen] = useState(false);
-    const [createSuccess, setCreateSuccess] = useState(false);
-    const [createError, setCreateError] = useState(false);
+    const [message, setMessage] = useState(null);   
 
     const [formData, setFormData] = useState({       
         customerId: '',
@@ -28,11 +27,13 @@ export default function Create({ isCreated }) {
     }, []);      
 
     // const
-    const API_END_POINT = `https://localhost:7207/api/`;
+    const API_END_POINT = `https://onboardsite.azurewebsites.net/api/`;
     
     // methods
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const handleDisplayModal = () => {
+        setOpen(!open);
+        setMessage(null);
+    };
 
     const fetchCustomers = async () => {
         try {
@@ -101,18 +102,22 @@ export default function Create({ isCreated }) {
             // Handle success           
             console.log('Store created successfully');
 
-            setCreateError(false);
-            setCreateSuccess(true);           
+            setMessage(<Message positive>
+                <p>The sale has been created successfully.</p>
+            </Message>)     
 
             setTimeout(() => {
-                handleClose()
+                handleDisplayModal()
                 isCreated(true)
             }, 3000);
 
 
         } catch (error) {
-            setCreateSuccess(false);
-            setCreateError(true);
+
+            setMessage(<Message negative>
+                <p>There was an error while creating the sale.</p>
+            </Message>)
+
             console.error('There was a problem creating store:', error.message);
         }
     };
@@ -123,10 +128,9 @@ export default function Create({ isCreated }) {
         <>
 
             <Modal
-                onClose={handleClose}
-                onOpen={handleOpen}
+                onClose={handleDisplayModal}
                 open={open}
-                trigger={<Button className="ui primary button">New Sale</Button>}
+                trigger={<Button className="ui primary button" onClick={handleDisplayModal} >New Sale</Button>}
             >
                 <Modal.Header>Create Sale</Modal.Header>
                 <Modal.Content>
@@ -159,7 +163,7 @@ export default function Create({ isCreated }) {
                             </select>
                         </div>
                         <div class="field">
-                            <label>Date Sold</label>
+                            <label>Date Sold (yyyy-mm-dd)</label>
                             <input
                                 type="text"
                                 name="dateSold"
@@ -169,21 +173,11 @@ export default function Create({ isCreated }) {
                         </div>
                     </form>
 
-                    {createSuccess && (
-                        <Message positive>
-                            <p>The sale has been created successfully.</p>
-                        </Message>
-                    )}
-
-                    {createError && (
-                        <Message negative>
-                            <p>There was an error while creating the sale.</p>
-                        </Message>
-                    )}
+                    { message }
 
                 </Modal.Content>
                 <Modal.Actions>
-                    <Button color='black' onClick={handleClose}>
+                    <Button color='black' onClick={handleDisplayModal}>
                         Cancel
                     </Button>
                     <Button className="ui teal button" onClick={handleSubmit}>Create <span className="icon-wrapper"><i class="check icon"></i></span></Button>

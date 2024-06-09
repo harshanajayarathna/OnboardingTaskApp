@@ -16,7 +16,7 @@ export default function List() {
     const fetchStores = async () => {
 
         try {
-            await fetch('https://localhost:7207/api/Store')
+            await fetch('https://onboardsite.azurewebsites.net/api/Store')
                 .then(response => response.json())
                 .then(data => setStores(data))
                 .catch(error => console.error('Error fetching stores:', error));
@@ -50,6 +50,14 @@ export default function List() {
 
     const renderTableRows = (store, handleUpdateSuccess, handleDeleteSuccess) => {
 
+        const storeDeleteItem = {
+            id: store.id,
+            title: 'Delete Store',
+            buttonText: 'DELETE',
+            url: 'Store',
+            redirect: 'stores'
+        };
+
         return (
             <tr key={store.id}>
                 <td data-label="Name">{store.name}</td>
@@ -62,7 +70,7 @@ export default function List() {
                 </td>
                 <td>
                     <StoreDelete
-                        item={{ id: store.id, title: 'Delete Store', buttonText: 'DELETE', url: 'Store', redirect: 'stores' }}
+                        item={storeDeleteItem }                       
                         isDeleted={handleDeleteSuccess}
                     />
                 </td>

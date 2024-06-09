@@ -69,7 +69,8 @@ namespace OnboardingTaskApp.Server.Controllers
                 _context.Product.Add(product);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetProductAsync), new { id = product.Id }, product);
+                return product;
+               
             }
             catch(Exception ex)
             {

@@ -5,8 +5,7 @@ export default function Edit({ item, isUpdated }) {
 
     // states
     const [open, setOpen] = useState(false);
-    const [updateSuccess, setUpdateSuccess] = useState(false);
-    const [updateError, setUpdateError] = useState(false);
+    const [message, setMessage] = useState(null);   
 
     const [formData, setFormData] = useState({
         customerId: '',
@@ -29,7 +28,7 @@ export default function Edit({ item, isUpdated }) {
 
     useEffect(() => {
 
-        if (item.sale.id <= 0 || item.sale.id === '') {
+        if (!item.sale.id) {
             throw new Error('Invalid Id');
         }
                
@@ -38,11 +37,13 @@ export default function Edit({ item, isUpdated }) {
     }, [item.sale.id]);
 
     // const
-    const API_END_POINT = `https://localhost:7207/api/`;
+    const API_END_POINT = `https://onboardsite.azurewebsites.net/api/`;
 
     // methods
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const handleDisplayModal = () => {
+        setOpen(!open);
+        setMessage(null);
+    };
 
     const fetchCustomers = async () => {
         try {
@@ -118,17 +119,21 @@ export default function Edit({ item, isUpdated }) {
             // Handle success
             console.log('Sale updated successfully');
 
-            setUpdateError(false);
-            setUpdateSuccess(true);
+            setMessage(<Message positive>
+                <p>The sale has been updated successfully.</p>
+            </Message>)
             
             setTimeout(() => {
-                handleClose()
+                handleDisplayModal()
                 isUpdated(true)
             }, 3000);
 
         } catch (error) {
-            setUpdateSuccess(false);
-            setUpdateError(true);
+
+            setMessage(<Message negative>
+                <p>There was an error while updating the sale.</p>
+            </Message>)
+
             console.error('There was a problem updating sale:', error.message);
         }
     };
@@ -136,10 +141,9 @@ export default function Edit({ item, isUpdated }) {
     return (
         <>
             <Modal
-                onClose={handleClose}
-                onOpen={handleOpen}
+                onClose={handleDisplayModal}
                 open={open}
-                trigger={<Button className="ui orange button"> <span className="icon-left-align"><i class="edit icon"></i></span> EDIT</Button>}
+                trigger={<Button className="ui orange button" onClick={handleDisplayModal} > <span className="icon-left-align"><i class="edit icon"></i></span> EDIT</Button>}
             >
                 <Modal.Header>Update Sale</Modal.Header>
                 <Modal.Content>
@@ -173,7 +177,7 @@ export default function Edit({ item, isUpdated }) {
                             </select>
                         </div>
                         <div class="field">
-                            <label>Date Sold</label>
+                            <label>Date Sold (yyyy-mm-dd)</label>
                             <input
                                 type="text"
                                 name="dateSold"
@@ -184,21 +188,11 @@ export default function Edit({ item, isUpdated }) {
 
                     </form>
 
-                    {updateSuccess && (
-                        <Message positive>
-                            <p>The sale has been updated successfully.</p>
-                        </Message>
-                    )}
-
-                    {updateError && (
-                        <Message negative>
-                            <p>There was an error while updating the sale.</p>
-                        </Message>
-                    )}
+                    { message }
 
                 </Modal.Content>
                 <Modal.Actions>
-                    <Button color='black' onClick={handleClose}>
+                    <Button color='black' onClick={handleDisplayModal}>
                         Cancel
                     </Button>
                     <Button className="ui teal button" onClick={handleUpdate}>Update <span className="icon-right-align"><i class="check icon"></i></span> </Button>

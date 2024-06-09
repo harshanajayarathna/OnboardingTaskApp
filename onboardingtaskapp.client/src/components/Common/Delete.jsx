@@ -1,25 +1,23 @@
 import React, { useState } from 'react';
 import { Modal, Button, Message } from 'semantic-ui-react';
 
-export default function Delete({ item, isDeleted }) { 
+export default function Delete({ item, isDeleted }) {
 
     const [open, setOpen] = useState(false);
-    const [deleteSuccess, setDeleteSuccess] = useState(false);
-    const [deleteError, setDeleteError] = useState(false);
+    const [message, setMessage] = useState(null);
 
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const handleDisplayModal = () => {
+        setOpen(!open);
+        setMessage(null);
+    };
 
-
-        
     const handleDelete = async () => {
-
-        if (item.id <= 0 || item.id === '') {
+        if (!item.id) {
             throw new Error('Invalid Id');
         }
 
         try {
-            const response = await fetch(`https://localhost:7207/api/${item.url}/${item.id}`, {
+            const response = await fetch(`https://onboardsite.azurewebsites.net/api/${item.url}/${item.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
@@ -28,66 +26,47 @@ export default function Delete({ item, isDeleted }) {
 
             if (!response.ok) {
                 throw new Error('Network response was not ok');
-                return;
             }
-            // Handle success           
-            console.log('Deleted successfully');   
-            
-            setDeleteSuccess(true);
-           
+
+            setMessage(
+                <Message positive>
+                    <p>The record has been deleted successfully.</p>
+                </Message>
+            );
 
             setTimeout(() => {
-                handleClose()
-                isDeleted(true) 
-                
+                handleDisplayModal(); 
+                isDeleted(true);
             }, 3000);
-                  
-            
-
         } catch (error) {
-            setDeleteError(true);
-            console.error('There was a problem deleting the :', error.message);
+            setMessage(
+                <Message negative>
+                    <p>There was an error while deleting the record.</p>
+                </Message>
+            );
+            console.error('There was a problem deleting the record:', error.message);
         }
     };
 
     return (
         <>
             <Modal
-                onClose={handleClose}
-                onOpen={handleOpen}
+                onClose={handleDisplayModal}
                 open={open}
-                trigger={<Button className="ui red button"> <span className="icon-right-align"><i class="trash alternate icon"></i></span> {item.buttonText} </Button>}
+                trigger={<Button className="ui red button" onClick={handleDisplayModal}> <span className="icon-right-align"><i class="trash alternate icon"></i></span> {item.buttonText} </Button>}
             >
-                <Modal.Header>{item.title }</Modal.Header>
+                <Modal.Header>{item.title}</Modal.Header>
                 <Modal.Content>
                     <h3>Are you sure?</h3>
-
-                    
-                    {deleteSuccess && (
-                        <Message positive>
-                           
-                            <p>The record has been deleted successfully.</p>
-                        </Message>
-                    )}
-
-                    {deleteError && (
-                        <Message negative>                           
-                            <p>There was an error while deleting the record.</p>
-                        </Message>
-                    )}
-
-
+                    {message}
                 </Modal.Content>
                 <Modal.Actions>
-                    <Button color='black' onClick={handleClose}>
+                    <Button color='black' onClick={handleDisplayModal}>
                         Cancel
                     </Button>
                     <Button className="ui button red" onClick={handleDelete}>Delete  <span className="icon-right-align"><i class="x icon"></i></span> </Button>
                 </Modal.Actions>
             </Modal>
-
-           
-
         </>
     );
 }

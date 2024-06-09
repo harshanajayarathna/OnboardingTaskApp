@@ -68,7 +68,7 @@ namespace OnboardingTaskApp.Server.Controllers
                 _context.Store.Add(store);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetStoreAsync), new { id = store.Id }, store);
+               return store;
             }
             catch (Exception ex)
             {

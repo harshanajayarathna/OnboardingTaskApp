@@ -5,8 +5,7 @@ export default function Create({ isCreated }) {
 
     // states
     const [open, setOpen] = useState(false);
-    const [createSuccess, setCreateSuccess] = useState(false);
-    const [createError, setCreateError] = useState(false);
+    const [message, setMessage] = useState(null);   
 
     const [formData, setFormData] = useState({
         name: '',
@@ -15,8 +14,10 @@ export default function Create({ isCreated }) {
     });
 
     // methods
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);        
+    const handleDisplayModal = () => {
+        setOpen(!open);
+        setMessage(null);
+    };     
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -29,30 +30,35 @@ export default function Create({ isCreated }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('https://localhost:7207/api/Store', {
+            const response = await fetch('https://onboardsite.azurewebsites.net/api/Store', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(formData),
             });
+            console.log(response);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
             // Handle success            
             console.log('Store created successfully');
 
-            setCreateError(false);
-            setCreateSuccess(true);
+            setMessage(<Message positive>
+                <p>The store has been created successfully.</p>
+            </Message>)
             
             setTimeout(() => {
-                handleClose()
+                handleDisplayModal()
                 isCreated(true)
             }, 3000);
 
         } catch (error) {
-            setCreateSuccess(false);
-            setCreateError(true);
+
+            setMessage(<Message negative>
+                <p>There was an error while creating the store.</p>
+            </Message>)
+
             console.error('There was a problem creating store:', error.message);
         }
     };
@@ -62,10 +68,9 @@ export default function Create({ isCreated }) {
     return (
         <>
             <Modal
-                onClose={handleClose}
-                onOpen={handleOpen}
+                onClose={handleDisplayModal}
                 open={open}
-                trigger={<Button className="ui primary button">New Store</Button>}
+                trigger={<Button className="ui primary button" onClick={handleDisplayModal} >New Store</Button>}
             >
                 <Modal.Header>Create Store</Modal.Header>
                 <Modal.Content>
@@ -91,21 +96,11 @@ export default function Create({ isCreated }) {
                         </div>                       
                     </form>
 
-                    {createSuccess && (
-                        <Message positive>
-                            <p>The store has been created successfully.</p>
-                        </Message>
-                    )}
-
-                    {createError && (
-                        <Message negative>
-                            <p>There was an error while creating the store.</p>
-                        </Message>
-                    )}
+                    {message}
 
                 </Modal.Content>
                 <Modal.Actions>
-                    <Button color='black' onClick={handleClose}>
+                    <Button color='black' onClick={handleDisplayModal}>
                         Cancel
                     </Button>
                     <Button className="ui teal button" onClick={handleSubmit}>Create <span className="icon-wrapper"><i class="check icon"></i></span> </Button>

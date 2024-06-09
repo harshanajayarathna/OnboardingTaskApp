@@ -5,8 +5,6 @@ import ProductCreate from './Create';
 import ProductEdit from './Edit';
 import ProductDelete from '../Common/Delete';
 
-//import { fetchCustomer } from '../../services/Service'
-
 export default function List() {
 
     const [products, setProducts] = useState([]);
@@ -20,7 +18,7 @@ export default function List() {
     const fetchProducts = async () => {
 
         try {
-            await fetch('https://localhost:7207/api/Product')
+            await fetch('https://onboardsite.azurewebsites.net/api/Product')
                 .then(response => response.json())
                 .then(data => setProducts(data))
                 .catch(error => console.error('Error fetching products:', error));
@@ -52,12 +50,20 @@ export default function List() {
         }
     }
 
-
     const renderTableRows = (product, handleUpdateSuccess, handleDeleteSuccess) => {
+
+        const productDeleteItem = {
+            id: product.id,
+            title: 'Delete Product',
+            buttonText: 'DELETE',
+            url: 'Product',
+            redirect: 'products'
+        };
+
         return (
             <tr key={product.id}>
                 <td data-label="Name">{product.name}</td>
-                <td data-label="Address">{product.price}</td>
+                <td data-label="Price">{product.price}</td>
                 <td>
                     <ProductEdit
                         item={{ product }}
@@ -66,7 +72,7 @@ export default function List() {
                 </td>
                 <td>
                     <ProductDelete
-                        item={{ id: product.id, title: 'Delete Product', buttonText: 'DELETE', url: 'Product', redirect: 'products' }}
+                        item={ productDeleteItem }                       
                         isDeleted={handleDeleteSuccess}
                     />
                 </td>
@@ -84,7 +90,7 @@ export default function List() {
             <table className="ui celled table">
                 <thead>
                     <tr><th>Name</th>
-                        <th>Address</th>
+                        <th>Price</th>
                         <th>Actions</th>
                         <th>Actions</th>
                     </tr>

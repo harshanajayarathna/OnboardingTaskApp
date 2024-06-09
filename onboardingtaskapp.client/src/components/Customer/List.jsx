@@ -15,7 +15,7 @@ export default function List() {
     const fetchCustomers = async () => {
 
         try {
-            await fetch('https://localhost:7207/api/Customer')
+            await fetch('https://onboardsite.azurewebsites.net/api/Customer')
                 .then(response => response.json())
                 .then(data => setCustomers(data))
                 .catch(error => console.error('Error fetching customers:', error));
@@ -47,6 +47,15 @@ export default function List() {
     }
 
     const renderTableRows = (customer, handleUpdateSuccess, handleDeleteSuccess) => {
+
+        const customerDeleteItem = {
+            id: customer.id,
+            title: 'Delete Customer',
+            buttonText: 'DELETE',
+            url: 'Customer',
+            redirect: ''
+        };
+
         return (
             <tr key={customer.id}>
                 <td data-label="Name">{customer.name}</td>
@@ -59,7 +68,7 @@ export default function List() {
                 </td>
                 <td>
                     <CustomerDelete
-                        item={{ id: customer.id, title: 'Delete Customer', buttonText: 'DELETE', url: 'Customer', redirect: '' }}
+                        item={customerDeleteItem }                       
                         isDeleted={handleDeleteSuccess}
 
                     />

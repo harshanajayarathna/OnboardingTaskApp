@@ -74,7 +74,7 @@ namespace OnboardingTaskApp.Server.Controllers
                 _context.Sales.Add(sale);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetSaleAsync), new { id = sale.Id }, sale);
+                return sale;
             }
             catch (Exception ex)
             {

@@ -8,6 +8,7 @@
     <SpaRoot>..\onboardingtaskapp.client</SpaRoot>
     <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:5173</SpaProxyServerUrl>
+    <UserSecretsId>07ce01b9-75d1-410d-8b11-c156cbd6c427</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

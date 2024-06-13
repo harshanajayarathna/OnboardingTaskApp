@@ -9,59 +9,98 @@ export default function List() {
 
     const [products, setProducts] = useState([]);
 
-    useEffect(() => {        
-        fetch('https://localhost:7207/api/Product')
-            .then(response => response.json())
-            .then(data => setProducts(data))
-            .catch(error => console.error('Error fetching products:', error));
+    useEffect(() => {       
+
+        fetchProducts();
+               
     }, []);
 
-    const handleDelete = async (productId) => {
+    const fetchProducts = async () => {
+
         try {
-            const response = await fetch(`https://localhost:7207/api/Product/${productId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            // Handle success
-            window.location.replace("/products");
-            console.log('Product deleted successfully');
-            
+            await fetch('https://onboardsite.azurewebsites.net/api/Product')
+                .then(response => response.json())
+                .then(data => setProducts(data))
+                .catch(error => console.error('Error fetching products:', error));
+
         } catch (error) {
-            console.error('There was a problem deleting product:', error.message);
+            console.error('There was a problem fetching product data:', error.message);
         }
+        
     };
+
+    const handleDeleteSuccess = async (isDeleted) => {
+
+        if (isDeleted) {
+            await fetchProducts();
+        }
+    }
+
+    const handleUpdateSuccess = async (isUpdated) => {
+
+        if (isUpdated) {
+            await fetchProducts();
+        }
+    }
+
+    const handleCreateSuccess = async (isCreated) => {
+
+        if (isCreated) {
+            await fetchProducts();
+        }
+    }
+
+    const renderTableRows = (product, handleUpdateSuccess, handleDeleteSuccess) => {
+
+        const productDeleteItem = {
+            id: product.id,
+            title: 'Delete Product',
+            buttonText: 'DELETE',
+            url: 'Product',
+            redirect: 'products'
+        };
+
+        return (
+            <tr key={product.id}>
+                <td data-label="Name">{product.name}</td>
+                <td data-label="Price">{product.price}</td>
+                <td>
+                    <ProductEdit
+                        item={{ product }}
+                        isUpdated={handleUpdateSuccess}
+                    />
+                </td>
+                <td>
+                    <ProductDelete
+                        item={ productDeleteItem }                       
+                        isDeleted={handleDeleteSuccess}
+                    />
+                </td>
+            </tr>
+
+        )
+    }
+
 
     return (
         <>
             
-            <ProductCreate />
+            <ProductCreate isCreated={handleCreateSuccess} />
 
             <table className="ui celled table">
                 <thead>
                     <tr><th>Name</th>
-                        <th>Address</th>
+                        <th>Price</th>
                         <th>Actions</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {products.map(product => (
-                        <tr key={product.id}>
-                            <td data-label="Name">{product.name}</td>
-                            <td data-label="Address">{product.price}</td>
-                            <td>
-                                <ProductEdit item={{ product }} />                                
-                            </td>
-                            <td>
-                                <ProductDelete item={{ id: product.id, title: 'Delete Product', buttonText: 'DELETE', url: 'Product', redirect: 'products' }} />
-                            </td>
-                        </tr>
-                    ))}
+                    {products.map(product => 
+
+                        renderTableRows(product, handleUpdateSuccess, handleDeleteSuccess)
+                                               
+                    )}
 
                 </tbody>
             </table>

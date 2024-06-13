@@ -19,44 +19,77 @@ namespace OnboardingTaskApp.Server.Controllers
 
         // GET: api/<CustomerController>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
+        public async Task<ActionResult<IEnumerable<Customer>>> GetCustomersAsync()
         {
-            return await _context.Customer.ToArrayAsync();
+            try
+            {
+                return await _context.Customer.ToArrayAsync();
+            } 
+            catch (Exception ex)
+            {
+                return BadRequest($"error in customers fetching {ex.Message}");
+            }
+                        
         }
        
 
         // GET api/<CustomerController>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Customer>> GetCustomer(int id)
+        public async Task<ActionResult<Customer>> GetCustomerAsync(int id)
         {
-            var customer = await _context.Customer.FindAsync(id);
-
-            if (customer == null)
+                        
+            if (!HasValidId(id))
             {
-                return NotFound();
+                return BadRequest("Invalid ID");
             }
 
-            return customer;
+            try
+            {
+                var customer = await _context.Customer.FindAsync(id);
+
+                if (customer == null)
+                {
+                    return NotFound();
+                }
+
+                return customer;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"error in customer fetching {ex.Message}");
+            }
+            
         }
-        /*public string Get(int id)
-        {
-            return "value";
-        } */
+       
 
         // POST api/<CustomerController>
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
+        public async Task<ActionResult<Customer>> PostCustomerAsync(Customer customer)
         {
-            _context.Customer.Add(customer);
-            await _context.SaveChangesAsync();
+            try
+            { 
+                _context.Customer.Add(customer);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetCustomer), new { id = customer.Id }, customer);
+                return customer;              
+
+            } catch(Exception ex)
+            {
+                return BadRequest($"error in customer saving {ex.Message}");
+            } 
+            
+
         }
       
         // PUT api/<CustomerController>/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCustomer(int id, Customer customer)
+        public async Task<IActionResult> PutCustomerAsync(int id, Customer customer)
         {
+            if (!HasValidId(id))
+            {
+                return BadRequest("Invalid ID");
+            }
+
             if (id != customer.Id)
             {
                 return BadRequest();
@@ -86,23 +119,41 @@ namespace OnboardingTaskApp.Server.Controllers
         // DELETE api/<CustomerController>/5
         [HttpDelete("{id}")]
        
-        public async Task<IActionResult> DeleteCustomer(int id)
+        public async Task<IActionResult> DeleteCustomerAsync(int id)
         {
-            var customer = await _context.Customer.FindAsync(id);
-            if (customer == null)
+            if (!HasValidId(id))
             {
-                return NotFound();
+                return BadRequest("Invalid ID");
             }
+                        
+            try
+            {
+                var customer = await _context.Customer.FindAsync(id);
+                if (customer == null)
+                {
+                    return NotFound();
+                }
 
-            _context.Customer.Remove(customer);
-            await _context.SaveChangesAsync();
+                _context.Customer.Remove(customer);
+                await _context.SaveChangesAsync();
 
-            return NoContent();
+                return NoContent();
+
+            } catch (Exception ex)
+            {
+                return BadRequest($"error in customer deleting {ex.Message}");
+            }
         }
 
         private bool CustomerExists(int id)
         {
             return _context.Customer.Any(e => e.Id == id);
+        }
+
+
+        private bool HasValidId(int id)
+        {
+            return id > 0;
         }
     }
 }

@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
-import { Modal, Button } from 'semantic-ui-react';
+import { Modal, Button, Message } from 'semantic-ui-react';
 
-export default function Delete({ item }) { 
+export default function Delete({ item, isDeleted }) {
 
     const [open, setOpen] = useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const [message, setMessage] = useState(null);
+
+    const handleDisplayModal = () => {
+        setOpen(!open);
+        setMessage(null);
+    };
 
     const handleDelete = async () => {
+        if (!item.id) {
+            throw new Error('Invalid Id');
+        }
+
         try {
-            const response = await fetch(`https://localhost:7207/api/${item.url}/${item.id}`, {
+            const response = await fetch(`https://onboardsite.azurewebsites.net/api/${item.url}/${item.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
@@ -19,28 +27,41 @@ export default function Delete({ item }) {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            // Handle success
-            window.location.replace(`/${item.redirect}`);
-            console.log('Deleted successfully');
+
+            setMessage(
+                <Message positive>
+                    <p>The record has been deleted successfully.</p>
+                </Message>
+            );
+
+            setTimeout(() => {
+                handleDisplayModal(); 
+                isDeleted(true);
+            }, 3000);
         } catch (error) {
-            console.error('There was a problem deleting the :', error.message);
+            setMessage(
+                <Message negative>
+                    <p>There was an error while deleting the record.</p>
+                </Message>
+            );
+            console.error('There was a problem deleting the record:', error.message);
         }
     };
 
     return (
         <>
             <Modal
-                onClose={handleClose}
-                onOpen={handleOpen}
+                onClose={handleDisplayModal}
                 open={open}
-                trigger={<Button className="ui red button"> <span className="icon-right-align"><i class="trash alternate icon"></i></span> {item.buttonText} </Button>}
+                trigger={<Button className="ui red button" onClick={handleDisplayModal}> <span className="icon-right-align"><i class="trash alternate icon"></i></span> {item.buttonText} </Button>}
             >
-                <Modal.Header>{item.title }</Modal.Header>
+                <Modal.Header>{item.title}</Modal.Header>
                 <Modal.Content>
                     <h3>Are you sure?</h3>
+                    {message}
                 </Modal.Content>
                 <Modal.Actions>
-                    <Button color='black' onClick={handleClose}>
+                    <Button color='black' onClick={handleDisplayModal}>
                         Cancel
                     </Button>
                     <Button className="ui button red" onClick={handleDelete}>Delete  <span className="icon-right-align"><i class="x icon"></i></span> </Button>

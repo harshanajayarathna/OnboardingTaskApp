@@ -8,36 +8,80 @@ export default function List() {
     const [stores, setStores] = useState([]);
 
     useEffect(() => {
-        // Simulate a fetch call to load users data
-        fetch('https://localhost:7207/api/Store')
-            .then(response => response.json())
-            .then(data => setStores(data))
-            .catch(error => console.error('Error fetching stores:', error));
+
+        fetchStores();
+       
     }, []);
 
-    const handleDelete = async (storeId) => {
+    const fetchStores = async () => {
+
         try {
-            const response = await fetch(`https://localhost:7207/api/Store/${storeId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            // Handle success
-            window.location.replace("/");
-            console.log('Store deleted successfully');
+            await fetch('https://onboardsite.azurewebsites.net/api/Store')
+                .then(response => response.json())
+                .then(data => setStores(data))
+                .catch(error => console.error('Error fetching stores:', error));
 
         } catch (error) {
-            console.error('There was a problem deleting store:', error.message);
+            console.error('There was a problem fetching stores data:', error.message);
         }
+       
     };
+
+    const handleDeleteSuccess = async (isDeleted) => {
+
+        if (isDeleted) {
+            await fetchStores();
+        }
+    }
+
+    const handleUpdateSuccess = async (isUpdated) => {
+
+        if (isUpdated) {
+            await fetchStores();
+        }
+    }
+
+    const handleCreateSuccess = async (isCreated) => {
+
+        if (isCreated) {
+            await fetchStores();
+        }
+    }
+
+    const renderTableRows = (store, handleUpdateSuccess, handleDeleteSuccess) => {
+
+        const storeDeleteItem = {
+            id: store.id,
+            title: 'Delete Store',
+            buttonText: 'DELETE',
+            url: 'Store',
+            redirect: 'stores'
+        };
+
+        return (
+            <tr key={store.id}>
+                <td data-label="Name">{store.name}</td>
+                <td data-label="Address">{store.address}</td>
+                <td>
+                    <StoreEdit
+                        item={{ store }}
+                        isUpdated={handleUpdateSuccess}
+                    />
+                </td>
+                <td>
+                    <StoreDelete
+                        item={storeDeleteItem }                       
+                        isDeleted={handleDeleteSuccess}
+                    />
+                </td>
+            </tr>
+        )
+
+    }
 
     return (
         <>
-            <StoreCreate />
+            <StoreCreate isCreated={handleCreateSuccess} />
 
             <table className="ui celled table">
                 <thead>
@@ -48,19 +92,9 @@ export default function List() {
                     </tr>
                 </thead>
                 <tbody>
-                    {stores.map(store => (
-                        <tr key={store.id}>
-                            <td data-label="Name">{store.name}</td>
-                            <td data-label="Address">{store.address}</td>
-                            <td>
-                                <StoreEdit item={{ store }} />          
-                            </td>
-                            <td>
-                                <StoreDelete item={{ id: store.id, title: 'Delete Store', buttonText: 'DELETE', url: 'Store', redirect: 'stores' }} />
-                            </td>
-
-                        </tr>
-                    ))}
+                    {stores.map(store =>
+                       renderTableRows(store, handleUpdateSuccess, handleDeleteSuccess  )
+                    )}
 
                 </tbody>
             </table>
